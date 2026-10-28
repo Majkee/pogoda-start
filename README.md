@@ -1,26 +1,48 @@
-# Pogoda
+# Lumio TV: Pogoda
 
-Repozytorium do ćwiczeń z modułów 1 i 2. Budujesz w nim tę samą małą aplikację trzy razy, za każdym razem inną metodą pracy z agentem, i porównujesz wyniki.
+Repozytorium do ćwiczeń z modułów 1 i 2. To kopia backendu i symulatora telewizorów Lumio, z jedną różnicą: tu możesz zmieniać wszystko, także telewizor w `tv/`. W katalogu aplikacji jest już Pogoda, ale po otwarciu pokazuje tylko swoją nazwę.
 
-Treść zadań jest na stronie z ćwiczeniami. Tu jest tylko punkt startowy: puste repozytorium ze skillami.
+Budujesz tę samą funkcję trzy razy, za każdym razem inną metodą pracy z agentem, i porównujesz wyniki. Treść zadań jest na stronie z ćwiczeniami. Tu jest tylko kod.
 
-## Start (5 minut)
+## Start (15 minut)
 
-Potrzebujesz gita i agenta (Claude Code albo Cline). Stack wybierasz sam.
+Potrzebujesz Pythona 3.9 lub nowszego i gita. Nic nie trzeba instalować przez `pip`.
 
-1. Sklonuj repozytorium albo rozpakuj ZIP od prowadzącego (ZIP zawiera katalog `.git` i tag `start`).
-2. Sprawdź tag startowy: `git tag` powinno wypisać `start`.
-3. Otwórz agenta w katalogu repozytorium i wpisz `/`. Na liście powinny być `/grilling` i `/grill-with-docs`.
+1. Sklonuj repozytorium albo rozpakuj ZIP (patrz [ZIP na Windowsie](#zip-na-windowsie)). Jeśli pracujesz w chmurze, utwórz kopię repozytorium według instrukcji na stronie z zadaniami.
+2. Sprawdź Pythona: `python3 --version`, `python --version` albo `py --version`. Potrzebna jest wersja 3.9 lub nowsza. Jeśli żadne nie działa, patrz [Brak Pythona](#brak-pythona).
+3. Uruchom testy. Wszystkie powinny przejść.
+
+   ```bash
+   ./run_tests.sh
+   ```
+
+   Na Windowsie (cmd albo PowerShell):
+
+   ```bat
+   run_tests.bat
+   ```
+
+4. Otwórz agenta (Claude Code albo Cline) w katalogu repozytorium i sprawdź, czy widzi skille, np. wpisz `/` i poszukaj `/grilling`.
+5. **Obowiązkowo** uruchom `/sprawdz-srodowisko`. Na końcu raportu powinno być „Środowisko gotowe.”.
+6. Lokalnie uruchom serwer i otwórz telewizor w przeglądarce.
+
+   ```bash
+   ./run_server.sh
+   ```
+
+   Na Windowsie: `run_server.bat`. Potem otwórz <http://localhost:8765/tv/?device=TV-001>.
+
+Jeśli coś nie działa, wklej prowadzącemu na czacie szkolenia raport z `/sprawdz-srodowisko`.
 
 ## Gałęzie
 
-Każda wersja aplikacji powstaje na osobnej gałęzi, zawsze od tagu `start`. Dzięki temu wszystkie wersje zostają w repozytorium i można je porównać.
+Każda wersja powstaje na osobnej gałęzi, zawsze od tagu `start`. Dzięki temu wszystkie wersje zostają w repozytorium i można je porównać.
 
 | Zadanie | Gałąź | Polecenie |
 | --- | --- | --- |
-| 1. Vibe coding | `vibe` | `git switch -c vibe start` |
-| 2. Grilling | `grill` | `git switch -c grill start` |
-| 3. Grill with docs | `docs` | `git switch -c docs start` |
+| 1a. Vibe coding | `vibe` | `git switch -c vibe start` |
+| 1b. Grilling | `grill` | `git switch -c grill start` |
+| 1c. Grill with docs | `docs` | `git switch -c docs start` |
 
 Przed przejściem do kolejnego zadania zacommituj wszystko na bieżącej gałęzi (`git add -A` i `git commit`).
 
@@ -30,7 +52,47 @@ Porównanie dwóch wersji:
 git diff vibe grill --stat
 ```
 
-Każda wersja może działać na innym porcie, więc możesz otworzyć je obok siebie (np. w dwóch kopiach katalogu albo przez `git worktree add ../pogoda-vibe vibe`).
+Nie używaj `git reset --hard` na gałęzi z wersją, którą chcesz jeszcze porównać. Żeby zacząć od zera, utwórz nową gałąź od `start`.
+
+## Polecenia
+
+| Co | Polecenie |
+| --- | --- |
+| Wszystkie testy | `./run_tests.sh` / `run_tests.bat` |
+| Testy z nazwami | `./run_tests.sh -v` |
+| Jeden plik testów | `python -m unittest tests.test_catalog -v` |
+| Serwer | `./run_server.sh` / `run_server.bat` |
+| Serwer na innym porcie | `./run_server.sh --port 9000` |
+| Przywrócenie stanu telewizorów | `./run_server.sh --reset` |
+
+Polecenie Pythona zależy od systemu. Skrypty `run_*` same znajdą działające. Jeśli wpisujesz je ręcznie, spróbuj kolejno `py -3`, `python`, `python3`.
+
+Telewizor musi być otwierany przez serwer (`http://localhost:...`). Otwarcie `tv/index.html` jako pliku nie zadziała, bo przeglądarka zablokuje zapytania do API.
+
+## Symulator telewizora
+
+Każda karta przeglądarki to jeden telewizor. Parametr `?device=` wybiera urządzenie, więc możesz otworzyć kilka telewizorów różnych modeli naraz. Na dole strony są linki do wszystkich urządzeń z rejestru.
+
+Pilot obsługujesz myszą albo klawiaturą: strzałki, `Enter` (OK), `Esc` (wstecz), `H` (menu), `P` (zasilanie), `PageUp`/`PageDown` (kanały).
+
+Pod ekranem jest dziennik urządzenia i licznik pobrań firmware'u.
+
+## Struktura
+
+```
+backend/      API, serwer HTTP, rejestr urządzeń, OTA, katalog aplikacji
+tests/        testy unittest
+fixtures/     dane referencyjne i wektory testowe (JSON)
+tv/           klient telewizora (tu możesz go zmieniać)
+.claude/      skille i ustawienia dla Claude Code
+.cline/       skille dla Cline
+.clinerules/  reguły projektu dla Cline
+docs/agents/  konfiguracja skilli
+.scratch/     lokalny tracker zgłoszeń i ticketów
+python/       miejsce na przenośnego Pythona (ignorowane przez gita)
+```
+
+Zasady pracy z agentem są w [CLAUDE.md](CLAUDE.md). Cline czyta tę samą treść z `.clinerules/`.
 
 ## Skille
 
@@ -40,16 +102,37 @@ Skille Matta Pococka (repozytorium `mattpocock/skills`) są w repozytorium w zam
 | --- | --- |
 | `/grilling` | wywiad, który doprecyzowuje plan przed pisaniem kodu |
 | `/grill-with-docs` | ten sam wywiad, ale zapisuje też słownik pojęć (`CONTEXT.md`) i decyzje (`docs/adr/`) |
-| `/domain-modeling` | słownik domeny i decyzje architektoniczne (używany przez `/grill-with-docs`) |
 | `/to-spec` | specyfikacja z dotychczasowej rozmowy |
 | `/to-tickets` | podział specyfikacji na tickety |
 | `/implement` | implementacja ticketu |
 | `/tdd` | red → green → refactor |
-| `/diagnosing-bugs` | pętla diagnozy błędu |
+| `/diagnosing-bugs` | pętla diagnozy błędu: reprodukcja, hipotezy, poprawka |
 | `/code-review` | review zmian od wskazanego commita lub tagu |
+| `/triage` | ocena i porządkowanie zgłoszeń |
+| `/codebase-design`, `/improve-codebase-architecture`, `/domain-modeling` | projektowanie modułów i słownika domeny |
+| `/sprawdz-srodowisko` | sprawdzenie, czy środowisko jest gotowe do zadań (uruchom na początku zajęć) |
 
-Zgłoszenia, tickety i specyfikacje są plikami markdown w `.scratch/<feature>/`.
+Zgłoszenia, tickety i specyfikacje są plikami markdown w `.scratch/<feature>/`. Stan zgłoszenia zapisany jest w linii `Status:` na początku pliku. Nie potrzebujesz dostępu do żadnego zewnętrznego trackera.
 
-## Powrót do startu
+## Ustawienia agentów
 
-`git switch -c <nowa-gałąź> start` zaczyna od zera bez kasowania innych wersji. Nie używaj `git reset --hard` na gałęzi z wersją, którą chcesz jeszcze porównać.
+**Claude Code.** `.claude/settings.json` pozwala uruchamiać testy, `git status`, `git diff` i `git log` bez pytania o zgodę.
+
+**Cline.** Cline pyta o zgodę przy każdej akcji. Żeby ćwiczenia się nie wlekły, w panelu Cline włącz Auto-approve dla:
+
+- Read project files
+- Execute safe commands
+
+Edycję plików (Edit project files) zostaw do ręcznej akceptacji. Wtedy widzisz każdą zmianę przed zapisaniem.
+
+## ZIP na Windowsie
+
+ZIP od prowadzącego zawiera katalog `.git`, więc działają `git diff` i gałęzie od tagu `start`. ZIP pobrany z przycisku „Download ZIP” na GitHubie nie ma historii ani tagu `start`, nie używaj go.
+
+Jeśli Windows blokuje skrypty z rozpakowanego archiwum: przed rozpakowaniem kliknij ZIP prawym przyciskiem → Właściwości → zaznacz „Odblokuj” → OK.
+
+## Brak Pythona
+
+1. **Przenośny Python (Windows).** Pobierz oficjalny „Windows embeddable package” z python.org według instrukcji na stronie z zadaniami i rozpakuj go do folderu `python/` w katalogu repozytorium, tak żeby powstał plik `python/python.exe`. W pliku `python/python3XX._pth` dopisz osobną linię `..`, bez niej Python nie zobaczy kodu repozytorium. `/sprawdz-srodowisko` pomoże ułożyć pliki i dopisać tę linię. Nie wymaga to instalacji ani uprawnień administratora. Skrypty `run_*` używają przenośnego Pythona, gdy nie znajdą systemowego. Folder `python/` jest ignorowany przez gita.
+2. **Praca w chmurze**, gdy polityka firmy blokuje uruchamianie programów z katalogu użytkownika. Napisz do prowadzącego na czacie szkolenia.
+3. **Codespaces.** Repozytorium ma `.devcontainer/devcontainer.json` z Pythonem 3.11. Port 8765 jest przekierowywany automatycznie.
